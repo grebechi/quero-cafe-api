@@ -21,13 +21,19 @@ async function createCoffee(req, res) {
 async function getCoffeesToday(req, res) {
   try {
     const [rows] = await pool.execute(
-      `SELECT * FROM coffee WHERE DATE(date_created) = CURDATE()`
+      `SELECT c.*, p.name AS trainee_name
+       FROM coffee c
+       JOIN people p ON c.trainee_id = p.id
+       WHERE DATE(c.date_created) = CURDATE()
+       ORDER BY c.date_created ASC`
     );
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: 'Error fetching today\'s coffees' });
+    console.error(err);
+    res.status(500).json({ error: "Error fetching today's coffees" });
   }
 }
+
 
 async function getLastCoffee(req, res) {
   try {

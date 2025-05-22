@@ -1,12 +1,20 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const peopleRoutes = require('./routes/peopleRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const coffeeRoutes = require('./routes/coffeeRoutes');
 
 const app = express();
+app.use(cors({
+    origin: process.env.CORS_ORIGIN, 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false   
+}));
 app.use(express.json());
+app.options('*', cors());
 
 app.use('/auth', authRoutes);
 app.use('/people', peopleRoutes);

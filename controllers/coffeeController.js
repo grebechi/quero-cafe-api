@@ -13,4 +13,43 @@ async function createCoffee(req, res) {
   }
 }
 
-module.exports = { createCoffee };
+async function getCoffeesToday(req, res) {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT * FROM coffee WHERE DATE(date_created) = CURDATE()`
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching today\'s coffees' });
+  }
+}
+
+async function getLastCoffee(req, res) {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT * FROM coffee ORDER BY date_created DESC LIMIT 1`
+    );
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.status(404).json({ message: 'No coffee records found' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching last coffee' });
+  }
+}
+
+async function getCoffeesByTrainee(req, res) {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.execute(
+      `SELECT * FROM coffee WHERE trainee_id = ? ORDER BY date_created DESC`,
+      [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching coffees by trainee' });
+  }
+}
+
+module.exports = { createCoffee, getCoffeesToday, getLastCoffee, getCoffeesByTrainee };

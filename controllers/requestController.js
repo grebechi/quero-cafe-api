@@ -24,4 +24,17 @@ async function createRequest(req, res) {
   }
 }
 
-module.exports = { createRequest };
+async function getRequestsByPerson(req, res) {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.execute(
+      `SELECT * FROM request WHERE person_id = ? ORDER BY date_created DESC`,
+      [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching requests by person' });
+  }
+}
+
+module.exports = { createRequest, getRequestsByPerson };

@@ -51,7 +51,35 @@ A API estará rodando em: `http://localhost:3000`
 
 ---
 
-## Autenticação
+## ✅ Como Rodar os Testes
+
+1. Certifique-se de que as dependências de desenvolvimento estão instaladas:
+
+```bash
+npm install --save-dev jest supertest
+```
+
+2. Execute os testes:
+
+```bash
+npm test
+```
+
+Os testes são executados utilizando **mocks** de banco de dados e de dependências como `bcrypt` e `jsonwebtoken`.  
+Nenhum dado real é alterado durante os testes.
+
+Estrutura de testes:
+
+```
+tests/
+├── auth.test.js
+├── coffee.test.js
+└── request.test.js
+```
+
+---
+
+## ✅ Autenticação
 
 - **Login** → `POST /auth/login`
 - Envie: 
@@ -79,9 +107,9 @@ Authorization: Bearer JWT_TOKEN
 
 ---
 
-## Endpoints
+## ✅ Endpoints
 
-### Auth
+### 📌 Auth
 
 **POST /auth/login**  
 → Login e recebe token.
@@ -91,106 +119,35 @@ Authorization: Bearer JWT_TOKEN
 ### 📌 People
 
 **POST /people** → Criar usuário (somente admin)  
-- Envie:
-
-```json
-{
-  "name": "Novo Usuário",
-  "mail": "novo@exemplo.com",
-  "pass": "senha123",
-  "isTrainee": true,
-  "isAdmin": false
-}
-```
-
-- Retorna:
-
-```json
-{ "message": "User created" }
-```
-
----
-
-**DELETE /people/:id** → Remover usuário (somente admin)  
-
-Exemplo:  
-`DELETE /people/5`
-
-- Retorna:
-
-```json
-{ "message": "User deleted" }
-```
+**DELETE /people/:id** → Remover usuário (somente admin)
 
 ---
 
 ### 📌 Request
 
 **POST /requests** → Criar solicitação de café  
-- Envie:
-
-```json
-{
-  "person_id": 2
-}
-```
-
-- Restrições:
-  - Só é permitido criar uma nova solicitação se a última foi há mais de **5 minutos**.
-
-- Retorna:
-
-```json
-{ "message": "Request created", "request_id": 1 }
-```
+**GET /requests/person/:id** → Buscar todas as solicitações de uma pessoa
 
 ---
 
 ### 📌 Coffee
 
 **POST /coffee** → Registrar café passado  
-- Envie:
-
-```json
-{
-  "trainee_id": 3,
-  "request_id": 1
-}
-```
-
-- `request_id` é opcional → pode ser `null`.
-
-- Retorna:
-
-```json
-{ "message": "Coffee recorded", "coffee_id": 1 }
-```
+**GET /coffee/today** → Cafés feitos hoje  
+**GET /coffee/last** → Último café feito  
+**GET /coffee/trainee/:id** → Cafés preparados por um estagiário
 
 ---
 
-## Exemplo de fluxo completo
-
-1. **Usuário faz login** → obtém token.
-2. **Solicita café** → `POST /requests` com token.
-3. **Estagiário passa o café** → `POST /coffee` com token.
-
----
-
-## Segurança
-
-- Senhas armazenadas com **bcrypt**.
-- Autenticação via **JWT**.
-- Rotas sensíveis protegidas por **middleware**.
-
----
-
-## Estrutura de Diretórios
+## ✅ Estrutura de Diretórios
 
 ```
 quero-cafe-api/
 ├── controllers/
 ├── middlewares/
 ├── routes/
+├── tests/
+├── __mocks__/
 ├── db.js
 ├── app.js
 ├── .env
@@ -201,7 +158,16 @@ quero-cafe-api/
 
 ---
 
-## Contribuição
+## ✅ Segurança
+
+- Senhas armazenadas com **bcrypt**.
+- Autenticação via **JWT**.
+- Rotas sensíveis protegidas por **middleware**.
+- Arquivo `.env` incluído no `.gitignore` → nunca suba ele ao GitHub.
+
+---
+
+## ✅ Contribuição
 
 1. Fork o projeto.
 2. Crie sua branch: `git checkout -b feature/nome`.
@@ -211,6 +177,6 @@ quero-cafe-api/
 
 ---
 
-## Licença
+## ✅ Licença
 
 MIT License.

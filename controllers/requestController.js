@@ -1,7 +1,7 @@
 const pool = require('../db');
 
 async function createRequest(req, res) {
-  const person_id = req.user.id;  // ✅ pegamos do token
+  const person_id = req.user.id;
 
   try {
     const [rows] = await pool.execute(
@@ -47,4 +47,4 @@ async function getMyRequests(req, res) {
 }
 
 
-module.exports = { createRequest, getRequestsByPerson };
+module.exports = { createRequest, getMyRequests };

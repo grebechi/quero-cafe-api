@@ -5,6 +5,9 @@ const authRoutes = require('./routes/authRoutes');
 const peopleRoutes = require('./routes/peopleRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const coffeeRoutes = require('./routes/coffeeRoutes');
+const userRoutes = require('./routes/userRoutes');
+
+
 
 const app = express();
 app.use(cors({
@@ -20,6 +23,7 @@ app.use('/auth', authRoutes);
 app.use('/people', peopleRoutes);
 app.use('/requests', requestRoutes);
 app.use('/coffee', coffeeRoutes);
+app.use('/', userRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API running on port ${PORT}`));

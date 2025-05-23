@@ -13,8 +13,9 @@ async function createRequest(req, res) {
     if (rows.length > 0) {
       console.log(`Data bruta do banco (rows[0].date_created):`, rows[0].date_created);
       console.log(`Tipo de date_created:`, typeof rows[0].date_created);
+      console.log(`Tipo de date_created:`, rows[0].date_created);
 
-      const last = DateTime.fromJSDate(rows[0].date_created, { zone: 'utc' });
+      const last = DateTime.fromJSDate(rows[0].date_created);
       const now = DateTime.now().setZone('America/Sao_Paulo');
 
       console.log(`Interpretação com Luxon - last: ${last.toISO()}`);

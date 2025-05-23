@@ -15,7 +15,7 @@ async function createRequest(req, res) {
 
       const diffInMinutes = (now.getTime() - last.getTime()) / (1000 * 60);
 
-      console.log(`Última requisição: ${last.toISOString()}`);
+      console.log(`Última requisição feita: ${last.toISOString()}`);
       console.log(`Agora: ${now.toISOString()}`);
       console.log(`Diferença em minutos: ${diffInMinutes.toFixed(4)}`);
 

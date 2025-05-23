@@ -14,14 +14,13 @@ async function createRequest(req, res) {
       console.log(`Data bruta do banco (rows[0].date_created):`, rows[0].date_created);
       console.log(`Tipo de date_created:`, typeof rows[0].date_created);
 
-      const last = DateTime.fromJSDate(rows[0].date_created, { zone: 'utc' }).setZone('America/Sao_Paulo');
-      const now = DateTime.now().setZone('America/Sao_Paulo');
+      const last = DateTime.fromJSDate(rows[0].date_created, { zone: 'utc' });
+      const now = DateTime.now().setZone('utc');
 
       console.log(`Interpretação com Luxon - last: ${last.toISO()}`);
       console.log(`Interpretação com Luxon - now: ${now.toISO()}`);
 
-      const diff = now.diff(last, 'minutes');
-      const diffInMinutes = diff.minutes;
+      const diffInMinutes = now.diff(last, 'minutes').minutes;
 
       console.log(`Diferença em minutos: ${diffInMinutes.toFixed(4)}`);
       console.log(`Cooldown configurado: ${COOLDOWN_MINUTES} minutos`);
@@ -53,7 +52,6 @@ async function createRequest(req, res) {
     res.status(500).json({ error: 'Error creating request' });
   }
 }
-
 
 
 

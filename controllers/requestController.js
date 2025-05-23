@@ -10,19 +10,19 @@ async function createRequest(req, res) {
     );
 
     if (rows.length > 0) {
-      const last = new Date(rows[0].date_created);
-      const now = new Date();
+      const lastTimestamp = new Date(rows[0].date_created).getTime();
+      const nowTimestamp = Date.now();
 
-      console.log('Última requisição:', last);
-      console.log('Agora:', now);
+      const diffInMinutes = (nowTimestamp - lastTimestamp) / (1000 * 60);
 
-      const diffInMinutes = (now - last) / (1000 * 60);
+      console.log('Última requisição:', new Date(lastTimestamp));
+      console.log('Agora:', new Date(nowTimestamp));
       console.log('Diferença em minutos:', diffInMinutes);
 
       if (diffInMinutes < COOLDOWN_MINUTES) {
-        return res.status(429).json({ 
+        return res.status(429).json({
           error: `Aguarde ${Math.ceil(COOLDOWN_MINUTES - diffInMinutes)} minutos antes de um novo pedido.`,
-          lastRequest: last.toISOString(),
+          lastRequest: new Date(lastTimestamp).toISOString(),
           remainingMinutes: Math.ceil(COOLDOWN_MINUTES - diffInMinutes)
         });
       }
@@ -33,10 +33,7 @@ async function createRequest(req, res) {
       [person_id]
     );
 
-    res.status(201).json({ 
-      message: 'Request created', 
-      request_id: result.insertId 
-    });
+    res.status(201).json({ message: 'Request created', request_id: result.insertId });
 
   } catch (err) {
     console.error(err);

@@ -1,5 +1,5 @@
 const pool = require('../db');
-import { DateTime } from 'luxon';
+const { DateTime } = require('luxon');
 
 async function createRequest(req, res) {
   const person_id = req.user.id;

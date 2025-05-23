@@ -1,4 +1,5 @@
 const pool = require('../db');
+import { DateTime } from 'luxon';
 
 async function createRequest(req, res) {
   const person_id = req.user.id;
@@ -10,22 +11,32 @@ async function createRequest(req, res) {
     );
 
     if (rows.length > 0) {
-      const last = new Date(rows[0].date_created);
-      const now = new Date();
+      console.log(`Data bruta do banco (rows[0].date_created):`, rows[0].date_created);
 
-      const diffInMinutes = (now.getTime() - last.getTime()) / (1000 * 60);
+      const last = DateTime.fromISO(rows[0].date_created, { zone: 'America/Sao_Paulo' });
+      const now = DateTime.now().setZone('America/Sao_Paulo');
 
-      console.log(`Última requisição: ${last.toISOString()}`);
-      console.log(`Agora: ${now.toISOString()}`);
+      console.log(`Interpretação com Luxon - last: ${last.toISO()}`);
+      console.log(`Interpretação com Luxon - now: ${now.toISO()}`);
+
+      const diff = now.diff(last, 'minutes');
+      const diffInMinutes = diff.minutes;
+
       console.log(`Diferença em minutos: ${diffInMinutes.toFixed(4)}`);
+      console.log(`Cooldown configurado: ${COOLDOWN_MINUTES} minutos`);
 
       if (diffInMinutes < COOLDOWN_MINUTES) {
+        console.log(`Rejeitando requisição: cooldown ainda não expirou.`);
         return res.status(429).json({ 
           error: `Aguarde ${Math.ceil(COOLDOWN_MINUTES - diffInMinutes)} minutos antes de um novo pedido.`,
-          lastRequest: last.toISOString(),
+          lastRequest: last.toISO(),
           cooldown: COOLDOWN_MINUTES
         });
+      } else {
+        console.log(`Cooldown expirado: seguindo com criação da requisição.`);
       }
+    } else {
+      console.log(`Nenhuma requisição anterior encontrada: criando primeira requisição.`);
     }
 
     const [result] = await pool.execute(
@@ -33,9 +44,11 @@ async function createRequest(req, res) {
       [person_id]
     );
 
+    console.log(`Requisição criada com sucesso: ID ${result.insertId}`);
+
     res.status(201).json({ message: 'Request created', request_id: result.insertId });
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao criar requisição:', err);
     res.status(500).json({ error: 'Error creating request' });
   }
 }

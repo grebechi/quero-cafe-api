@@ -2,20 +2,22 @@ const pool = require('../db');
 
 async function createRequest(req, res) {
   const person_id = req.user.id;
+  const COOLDOWN_MINUTES = parseInt(process.env.REQUEST_COOLDOWN_MINUTES) || 5;
 
   try {
     const [rows] = await pool.execute(
-      'SELECT date_created FROM request WHERE person_id = ? ORDER BY date_created DESC LIMIT 1',
-      [person_id]
+      'SELECT date_created FROM request ORDER BY date_created DESC LIMIT 1'
     );
 
     if (rows.length > 0) {
       const last = new Date(rows[0].date_created);
       const now = new Date();
       const diffInMinutes = (now - last) / (1000 * 60);
-      
-      if (diffInMinutes < 5) {
-        return res.status(429).json({ error: 'Wait 5 minutes before a new request' });
+
+      if (diffInMinutes < COOLDOWN_MINUTES) {
+        return res.status(429).json({ 
+          error: `Aguarde ${Math.ceil(COOLDOWN_MINUTES - diffInMinutes)} minutos antes de um novo pedido.` 
+        });
       }
     }
 

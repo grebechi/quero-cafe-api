@@ -1,6 +1,8 @@
 const pool = require('../db');
 const { DateTime } = require('luxon');
 
+const { DateTime } = require('luxon');
+
 async function createRequest(req, res) {
   const person_id = req.user.id;
   const COOLDOWN_MINUTES = parseInt(process.env.REQUEST_COOLDOWN_MINUTES) || 5;
@@ -12,8 +14,9 @@ async function createRequest(req, res) {
 
     if (rows.length > 0) {
       console.log(`Data bruta do banco (rows[0].date_created):`, rows[0].date_created);
+      console.log(`Tipo de date_created:`, typeof rows[0].date_created);
 
-      const last = DateTime.fromISO(rows[0].date_created, { zone: 'utc' }).setZone('America/Sao_Paulo');
+      const last = DateTime.fromJSDate(rows[0].date_created, { zone: 'utc' }).setZone('America/Sao_Paulo');
       const now = DateTime.now().setZone('America/Sao_Paulo');
 
       console.log(`Interpretação com Luxon - last: ${last.toISO()}`);

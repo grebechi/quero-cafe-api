@@ -6,18 +6,22 @@ async function createRequest(req, res) {
 
   try {
     const [rows] = await pool.execute(
-      `SELECT COUNT(*) AS recent_requests
-       FROM request
-       WHERE date_created >= NOW() - INTERVAL ? MINUTE`,
-      [COOLDOWN_MINUTES]
+      'SELECT date_created FROM request ORDER BY date_created DESC LIMIT 1'
     );
 
-    const recentRequests = rows[0].recent_requests;
+    if (rows.length > 0) {
+      const last = new Date(rows[0].date_created);
+      const now = new Date();
+      const diffInMinutes = (now - last) / (1000 * 60);
 
-    if (recentRequests > 0) {
-      return res.status(429).json({
-        error: `Aguarde ${COOLDOWN_MINUTES} minutos antes de um novo pedido.`
-      });
+      if (diffInMinutes < COOLDOWN_MINUTES) {
+        const remaining = Math.ceil(COOLDOWN_MINUTES - diffInMinutes);
+        return res.status(429).json({
+          error: `Aguarde antes de um novo pedido.`,
+          lastRequest: last.toISOString(),
+          remainingMinutes: remaining
+        });
+      }
     }
 
     const [result] = await pool.execute(

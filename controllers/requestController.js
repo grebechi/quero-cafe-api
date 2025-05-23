@@ -15,14 +15,14 @@ async function createRequest(req, res) {
 
       const diffInMinutes = (now.getTime() - last.getTime()) / (1000 * 60);
 
-      console.log(`Última requisição: ${last}`);
-      console.log(`Agora: ${now}`);
-      console.log(`Diferença em minutos: ${diffInMinutes}`);
+      console.log(`Última requisição: ${last.toISOString()}`);
+      console.log(`Agora: ${now.toISOString()}`);
+      console.log(`Diferença em minutos: ${diffInMinutes.toFixed(4)}`);
 
       if (diffInMinutes < COOLDOWN_MINUTES) {
         return res.status(429).json({ 
           error: `Aguarde ${Math.ceil(COOLDOWN_MINUTES - diffInMinutes)} minutos antes de um novo pedido.`,
-          lastRequest: last,
+          lastRequest: last.toISOString(),
           cooldown: COOLDOWN_MINUTES
         });
       }
@@ -39,6 +39,7 @@ async function createRequest(req, res) {
     res.status(500).json({ error: 'Error creating request' });
   }
 }
+
 
 
 

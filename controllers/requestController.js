@@ -10,20 +10,20 @@ async function createRequest(req, res) {
     );
 
     if (rows.length > 0) {
-      const lastTimestamp = new Date(rows[0].date_created).getTime();
-      const nowTimestamp = Date.now();
+      const last = new Date(rows[0].date_created);
+      const now = new Date();
 
-      const diffInMinutes = (nowTimestamp - lastTimestamp) / (1000 * 60);
+      const diffInMinutes = (now.getTime() - last.getTime()) / (1000 * 60);
 
-      console.log('Última requisição:', new Date(lastTimestamp));
-      console.log('Agora:', new Date(nowTimestamp));
-      console.log('Diferença em minutos:', diffInMinutes);
+      console.log(`Última requisição: ${last}`);
+      console.log(`Agora: ${now}`);
+      console.log(`Diferença em minutos: ${diffInMinutes}`);
 
       if (diffInMinutes < COOLDOWN_MINUTES) {
-        return res.status(429).json({
+        return res.status(429).json({ 
           error: `Aguarde ${Math.ceil(COOLDOWN_MINUTES - diffInMinutes)} minutos antes de um novo pedido.`,
-          lastRequest: new Date(lastTimestamp).toISOString(),
-          remainingMinutes: Math.ceil(COOLDOWN_MINUTES - diffInMinutes)
+          lastRequest: last,
+          cooldown: COOLDOWN_MINUTES
         });
       }
     }
@@ -34,7 +34,6 @@ async function createRequest(req, res) {
     );
 
     res.status(201).json({ message: 'Request created', request_id: result.insertId });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error creating request' });

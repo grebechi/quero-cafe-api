@@ -13,7 +13,7 @@ async function createRequest(req, res) {
     if (rows.length > 0) {
       console.log(`Data bruta do banco (rows[0].date_created):`, rows[0].date_created);
 
-      const last = DateTime.fromISO(rows[0].date_created, { zone: 'America/Sao_Paulo' });
+      const last = DateTime.fromISO(rows[0].date_created, { zone: 'utc' }).setZone('America/Sao_Paulo');
       const now = DateTime.now().setZone('America/Sao_Paulo');
 
       console.log(`Interpretação com Luxon - last: ${last.toISO()}`);

@@ -1,8 +1,6 @@
 const pool = require('../db');
 const { DateTime } = require('luxon');
 
-const { DateTime } = require('luxon');
-
 async function createRequest(req, res) {
   const person_id = req.user.id;
   const COOLDOWN_MINUTES = parseInt(process.env.REQUEST_COOLDOWN_MINUTES) || 5;

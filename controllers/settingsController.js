@@ -1,5 +1,19 @@
 const pool = require('../db');
 
+// GET /settings - listar todas as configurações
+async function listSettings(req, res) {
+    try {
+      const [rows] = await pool.execute(
+        'SELECT id, key_name, value FROM settings ORDER BY key_name ASC'
+      );
+  
+      res.json(rows);
+    } catch (err) {
+      console.error('Erro ao listar configurações:', err);
+      res.status(500).json({ error: 'Erro ao listar configurações' });
+    }
+  }
+
 // GET /settings/:key
 async function getSetting(req, res) {
   const { key } = req.params;
@@ -59,4 +73,4 @@ async function updateSetting(req, res) {
   }
 }
 
-module.exports = { getSetting, updateSetting };
+module.exports = { getSetting, updateSetting, listSettings };

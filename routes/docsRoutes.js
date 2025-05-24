@@ -4,23 +4,44 @@ const apiDocs = require('../docs/apiDocs');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  const rows = apiDocs.map(route => {
-    const color = getMethodColor(route.method);
+  const sections = apiDocs.map(group => {
+    const rows = group.routes.map(route => {
+      const color = getMethodColor(route.method);
+      return `
+        <tr>
+          <td style="color: ${color}; font-weight: bold;">${route.method}</td>
+          <td>${route.path}</td>
+          <td>${route.description}</td>
+          <td>${route.auth ? '🔒 Sim' : 'Não'}</td>
+        </tr>
+      `;
+    }).join('');
+
     return `
-      <tr>
-        <td style="color: ${color}; font-weight: bold;">${route.method}</td>
-        <td>${route.path}</td>
-        <td>${route.description}</td>
-        <td>${route.auth ? '🔒 Yes' : 'No'}</td>
-      </tr>
+      <h2>${group.group}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Método</th>
+            <th>Caminho</th>
+            <th>Descrição</th>
+            <th>Auth</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
     `;
-  }).join('');
+  }).join('<br>');
+
+  const dataFormatada = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
   res.send(`
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Quero Café API Docs</title>
+      <title>Documentação da API - Quero Café</title>
       <style>
         body {
           font-family: Arial, sans-serif;
@@ -32,6 +53,10 @@ router.get('/', (req, res) => {
           text-align: center;
           margin-bottom: 2rem;
           font-size: 2rem;
+        }
+        h2 {
+          margin-top: 2rem;
+          color: #374151;
         }
         table {
           width: 100%;
@@ -55,22 +80,10 @@ router.get('/', (req, res) => {
       </style>
     </head>
     <body>
-      <h1>Quero Café API Documentation</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Method</th>
-            <th>Path</th>
-            <th>Description</th>
-            <th>Auth</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
+      <h1>Documentação da API - Quero Café</h1>
+      ${sections}
       <div class="footer">
-        <p>Generated automatically - ${new Date().toLocaleString()}</p>
+        <p>Gerado automaticamente - ${dataFormatada}</p>
       </div>
     </body>
     </html>

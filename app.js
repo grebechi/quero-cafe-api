@@ -7,6 +7,7 @@ const requestRoutes = require('./routes/requestRoutes');
 const coffeeRoutes = require('./routes/coffeeRoutes');
 const userRoutes = require('./routes/userRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
+const docsRoute = require('./routes/docsRoute');
 
 
 const app = express();
@@ -23,7 +24,8 @@ app.use('/auth', authRoutes);
 app.use('/people', peopleRoutes);
 app.use('/requests', requestRoutes);
 app.use('/coffee', coffeeRoutes);
-app.use('/', userRoutes);
+app.use('/user', userRoutes);
+app.use('/', docsRoute);
 app.use('/api', settingsRoutes);
 
 const PORT = process.env.PORT || 3000;

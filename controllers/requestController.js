@@ -1,14 +1,20 @@
 const pool = require('../db');
 const { DateTime } = require('luxon');
-const { getEffectiveCooldown } = require('../services/cooldownService');
+const { getEffectiveCooldown, getEffectiveMaxRequestsPerDay } = require('../services/cooldownService');
+const { checkDailyLimit } = require('../services/limitsService');
 
 async function createRequest(req, res) {
   const person_id = req.user.id;
 
   try {
+    //1) Obter limites e cooldown
     const COOLDOWN_MINUTES = await getEffectiveCooldown(person_id);
+    const MAX_REQUESTS_PER_DAY = await getEffectiveMaxRequestsPerDay(person_id);
 
-    // Última requisição global (sem filtro por usuário)
+    //2) Verifica limite diário
+    await checkDailyLimit('request', 'person_id', person_id, MAX_REQUESTS_PER_DAY);
+
+    //3) Verifica cooldown
     const [rows] = await pool.execute(
       'SELECT date_created FROM request ORDER BY date_created DESC LIMIT 1'
     );
@@ -37,14 +43,16 @@ async function createRequest(req, res) {
       console.log(`Nenhuma requisição anterior encontrada: criando primeira requisição.`);
     }
 
+    //4) Criação da requisição
     const [result] = await pool.execute(
       'INSERT INTO request (person_id) VALUES (?)',
       [person_id]
     );
 
-
     res.status(201).json({ message: 'Request created', request_id: result.insertId });
   } catch (err) {
+    console.error('Erro ao criar requisição:', err);
+
     if (err.status) {
       return res.status(err.status).json({ error: err.message });
     }

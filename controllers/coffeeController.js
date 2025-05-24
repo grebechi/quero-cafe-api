@@ -1,15 +1,21 @@
 const pool = require('../db');
 const { DateTime } = require('luxon');
-const { getEffectiveCooldown } = require('../services/cooldownService');
+const { getEffectiveCooldown, getEffectiveMaxCoffeesPerDay } = require('../services/cooldownService');
+const { checkDailyLimit } = require('../services/limitsService');
 
 async function createCoffee(req, res) {
   const trainee_id = req.user.id;
   const { request_id } = req.body;
 
   try {
+    //1) Obter limites
     const COOLDOWN_MINUTES = await getEffectiveCooldown(trainee_id);
+    const MAX_COFFEES_PER_DAY = await getEffectiveMaxCoffeesPerDay(trainee_id);
 
-    // Última marcação de café global
+    //2) Verificar limite diário
+    await checkDailyLimit('coffee', 'trainee_id', trainee_id, MAX_COFFEES_PER_DAY);
+
+    //3) Verificar cooldown
     const [rows] = await pool.execute(
       'SELECT date_created FROM coffee ORDER BY date_created DESC LIMIT 1'
     );
@@ -38,6 +44,7 @@ async function createCoffee(req, res) {
       console.log(`Nenhuma marcação de café anterior encontrada: criando primeira marcação.`);
     }
 
+    //4) Inserção
     const [result] = await pool.execute(
       'INSERT INTO coffee (trainee_id, request_id) VALUES (?, ?)',
       [trainee_id, request_id || null]
@@ -45,11 +52,12 @@ async function createCoffee(req, res) {
 
     res.status(201).json({ message: 'Café registrado', coffee_id: result.insertId });
   } catch (err) {
+    console.error('Erro ao registrar café:', err);
+
     if (err.status) {
       return res.status(err.status).json({ error: err.message });
     }
 
-    console.error(err);
     res.status(500).json({ error: 'Erro ao registrar café' });
   }
 }

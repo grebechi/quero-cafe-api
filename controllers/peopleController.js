@@ -2,16 +2,31 @@ const pool = require('../db');
 const bcrypt = require('bcrypt');
 
 async function createPerson(req, res) {
-  const { name, mail, pass, isTrainee, isAdmin } = req.body;
+  const { name, mail, pass, isTrainee = false, isAdmin = false } = req.body;
+
+  // Validação básica
+  if (!name || !mail || !pass) {
+    return res.status(400).json({ error: 'Name, mail e pass são obrigatórios.' });
+  }
+
   try {
+    //Verifica se email já existe
+    const [existing] = await pool.execute('SELECT id FROM people WHERE mail = ?', [mail]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'Email já cadastrado.' });
+    }
+
     const hashedPass = await bcrypt.hash(pass, 10);
+
     await pool.execute(
       'INSERT INTO people (name, mail, pass, isTrainee, isAdmin) VALUES (?, ?, ?, ?, ?)',
-      [name, mail, hashedPass, isTrainee, isAdmin]
+      [name, mail, hashedPass, !!isTrainee, !!isAdmin]
     );
-    res.status(201).json({ message: 'User created' });
+
+    res.status(201).json({ message: 'Usuário criado com sucesso.' });
   } catch (err) {
-    res.status(500).json({ error: 'Error creating user' });
+    console.error('Erro ao criar usuário:', err);
+    res.status(500).json({ error: 'Erro ao criar usuário.' });
   }
 }
 
@@ -63,7 +78,21 @@ async function listPeople(req, res) {
 
 async function updatePerson(req, res) {
   const { id } = req.params;
-  const { name, mail, isTrainee, isAdmin, cooldown_minutes, is_blocked, blocked_reason, max_requests_per_day, max_coffees_per_day } = req.body;
+  const { 
+    name, 
+    mail, 
+    isTrainee = false, 
+    isAdmin = false, 
+    cooldown_minutes = null, 
+    is_blocked = false, 
+    blocked_reason = null, 
+    max_requests_per_day = null, 
+    max_coffees_per_day = null 
+  } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ error: 'ID do usuário é obrigatório.' });
+  }
 
   try {
     await pool.execute(`
@@ -79,13 +108,22 @@ async function updatePerson(req, res) {
         max_coffees_per_day = ?
       WHERE id = ?
     `, [
-      name, mail, isTrainee, isAdmin, cooldown_minutes, is_blocked, blocked_reason, max_requests_per_day, max_coffees_per_day, id
+      name, 
+      mail, 
+      !!isTrainee, 
+      !!isAdmin, 
+      cooldown_minutes, 
+      !!is_blocked, 
+      blocked_reason, 
+      max_requests_per_day, 
+      max_coffees_per_day, 
+      id
     ]);
 
-    res.json({ message: 'Usuário atualizado com sucesso' });
+    res.json({ message: 'Usuário atualizado com sucesso.' });
   } catch (err) {
     console.error('Erro ao atualizar pessoa:', err);
-    res.status(500).json({ error: 'Error updating person' });
+    res.status(500).json({ error: 'Erro ao atualizar usuário.' });
   }
 }
 

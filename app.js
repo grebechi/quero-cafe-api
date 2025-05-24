@@ -7,7 +7,7 @@ const requestRoutes = require('./routes/requestRoutes');
 const coffeeRoutes = require('./routes/coffeeRoutes');
 const userRoutes = require('./routes/userRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
-const docsRoute = require('./routes/docsRoute');
+const docsRoute = require('./routes/docsRoutes');
 
 
 const app = express();

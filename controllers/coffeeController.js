@@ -1,19 +1,56 @@
 const pool = require('../db');
+const { DateTime } = require('luxon');
+const { getEffectiveCooldown } = require('../services/cooldownService');
 
 async function createCoffee(req, res) {
   const trainee_id = req.user.id;
   const { request_id } = req.body;
 
   try {
+    const COOLDOWN_MINUTES = await getEffectiveCooldown(trainee_id);
+
+    // Última marcação de café global
+    const [rows] = await pool.execute(
+      'SELECT date_created FROM coffee ORDER BY date_created DESC LIMIT 1'
+    );
+
+    if (rows.length > 0) {
+      console.log(`Data bruta do banco (rows[0].date_created):`, rows[0].date_created);
+
+      const last = DateTime.fromJSDate(rows[0].date_created);
+      const now = DateTime.now();
+
+      const diffInMinutes = now.diff(last, 'minutes').minutes;
+
+      if (diffInMinutes < COOLDOWN_MINUTES) {
+        const remaining = Math.ceil(COOLDOWN_MINUTES - diffInMinutes);
+
+        return res.status(429).json({ 
+          error: `Aguarde ${remaining} minutos antes de marcar outro café.`,
+          lastCoffee: last.toISO(),
+          cooldown: COOLDOWN_MINUTES,
+          remaining
+        });
+      } else {
+        console.log(`Cooldown expirado: seguindo com marcação do café.`);
+      }
+    } else {
+      console.log(`Nenhuma marcação de café anterior encontrada: criando primeira marcação.`);
+    }
+
     const [result] = await pool.execute(
       'INSERT INTO coffee (trainee_id, request_id) VALUES (?, ?)',
       [trainee_id, request_id || null]
     );
 
-    res.status(201).json({ message: 'Coffee recorded', coffee_id: result.insertId });
+    res.status(201).json({ message: 'Café registrado', coffee_id: result.insertId });
   } catch (err) {
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
+
     console.error(err);
-    res.status(500).json({ error: 'Error recording coffee' });
+    res.status(500).json({ error: 'Erro ao registrar café' });
   }
 }
 
